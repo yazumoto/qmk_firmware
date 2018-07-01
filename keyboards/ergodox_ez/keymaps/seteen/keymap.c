@@ -2,18 +2,23 @@
 #include "debug.h"
 #include "action_layer.h"
 #include "version.h"
+#include "config.h"
+#include "hk_util.h"
+#include "custom_keycodes.h"
 
 #define BASE 0 // default layer
 #define SYMB 1 // symbols
 #define MDIA 2 // media keys
+#define HACHIKOUME 3
 
-enum custom_keycodes {
-  PLACEHOLDER = SAFE_RANGE, // can always be here
-  EPRM,
-  VRSN,
-  RGB_SLD
+enum custom_functions {
+  F_SFT = 1,
+  F_CTRL,
+  F_LALT,
+  F_RALT,
+  F_LGUI,
+  F_RGUI
 };
-
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 /* Keymap 0: Basic layer
@@ -51,7 +56,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                                                    KC_HOME,
                                                KC_LSFT,KC_LCTL,S(KC_AMPR),
         // right hand
-             S(KC_8),     KC_6,   KC_LBRC,    KC_RBRC, S(KC_9),   S(KC_0),       KC_BSPC,
+             TG(HACHIKOUME),     KC_6,   KC_LBRC,    KC_RBRC, S(KC_9),   S(KC_0),       KC_BSPC,
              KC_MINS,     KC_Y,   KC_U,       KC_I,    KC_O,   KC_P,             KC_BSLS,
                           KC_H,   KC_J,       KC_K,    KC_L,   LT(MDIA, KC_SCLN),GUI_T(KC_QUOT),
              KC_EQL,      KC_N,   KC_M,       KC_COMM, KC_DOT, CTL_T(KC_SLSH),   S(KC_MINS),
@@ -144,10 +149,57 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
        KC_TRNS,
        KC_TRNS, KC_TRNS, KC_WBAK
 ),
+/* Keymap 3: Japanese layout layer (For JIS)
+ *
+ * ,--------------------------------------------------.           ,--------------------------------------------------.
+ * |  Esc   |   1  |   2  |   3  |   4  |   5  |      |           |      |   6  |   7  |   8  |   9  |   0  |        |
+ * |--------+------+------+------+------+-------------|           |------+------+------+------+------+------+--------|
+ * |  Tab   |   Q  |   W  |   E  |   R  |   T  |  [{  |           |  }]  |   Y  |   U  |   I  |   O  |   P  |  @`    |
+ * |--------+------+------+------+------+------|      |           |      |------+------+------+------+------+--------|
+ * | LCtrl  |   A  |   S  |   D  |   F  |   G  |------|           |------|   H  |   J  |   K  |   L  |  ;+  |  :*    |
+ * |--------+------+------+------+------+------|  Gui |           | Gui  |------+------+------+------+------+--------|
+ * | LShift |   Z  |   X  |   C  |   V  |   B  |      |           |      |   N  |   M  |   ,  |   .  |  /?  | RShift |
+ * `--------+------+------+------+------+-------------'           `-------------+------+------+------+------+--------'
+ *   |      |  \|  |  ^~  | LAlt | Eisu |                                       | Kana | RAlt |  \_  | Arr  |      |
+ *   `----------------------------------'                                       `----------------------------------'
+ *                                        ,-------------.       ,-------------.
+ *                                        | Left |Right |       | Left | Right|
+ *                                 ,------|------|------|       |------+------+------.
+ *                                 |      |      |  Up  |       |  Up  |      |      |
+ *                                 |LShift|Space |------|       |------| Enter|RShift|
+ *                                 |      |      | Down |       | Down |      |      |
+ *                                 `--------------------'       `--------------------'
+ */
+[HACHIKOUME] = LAYOUT_ergodox(  // layer 3 : for hachi-mitsu koume japanese layout
+        // left hand
+        KC_ESC,     KC_1,    KC_2,   KC_3,      KC_4,        KC_5,    KC_NO,
+        KC_TAB,     KC_Q,    KC_W,   KC_E,      KC_R,        KC_T,    JA_LBRC,
+        KC_LCTL,    KC_A,    KC_S,   KC_D,      KC_F,        KC_G,
+        KC_LSFT,    KC_Z,    KC_X,   KC_C,      KC_V,        KC_B,    F(F_LGUI),
+        KC_NO,      KC_JYEN, JA_HAT, KC_TRNS,   M_EISU,
+                                                             KC_LEFT, KC_RGHT,
+                                                                      KC_UP,
+                                     KC_HK_LSPACE,KC_SPACE,  KC_DOWN,
+        // right hand
+             KC_TRNS,    KC_6,      KC_7,     KC_8,      KC_9,    KC_0,        KC_TRNS,
+             JA_RBRC,    KC_Y,      KC_U,     KC_I,      KC_O,    KC_P,        JA_AT,
+                         KC_H,      KC_J,     KC_K,      KC_L,    KC_SCLN,     JA_CLN,
+             F(F_RGUI),  KC_N,      KC_M,     KC_COMM,   KC_DOT,  KC_SLSH,     KC_RSFT,
+                                    KC_ENT,   KC_TRNS,   KC_RGUI, OSL(MDIA),   KC_NO,
+             KC_LEFT,    KC_RGHT,
+             KC_UP,
+             KC_DOWN,    KC_ENTER,  KC_HK_RSPACE
+    )
 };
 
 const uint16_t PROGMEM fn_actions[] = {
-    [1] = ACTION_LAYER_TAP_TOGGLE(SYMB)                // FN1 - Momentary Layer 1 (Symbols)
+//    [1] = ACTION_LAYER_TAP_TOGGLE(SYMB)                // FN1 - Momentary Layer 1 (Symbols)
+    [F_SFT] = ACTION_MODS_ONESHOT(MOD_LSFT),
+    [F_CTRL] = ACTION_MODS_ONESHOT(MOD_LCTL),
+    [F_LALT] = ACTION_MODS_ONESHOT(MOD_LALT),
+    [F_RALT] = ACTION_MODS_ONESHOT(MOD_RALT),
+    [F_LGUI] = ACTION_MODS_ONESHOT(MOD_LGUI),
+    [F_RGUI] = ACTION_MODS_ONESHOT(MOD_RGUI)
 };
 
 const macro_t *action_get_macro(keyrecord_t *record, uint8_t id, uint8_t opt)
@@ -192,15 +244,25 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       return false;
       break;
   }
+
+  uint8_t layer = biton32(layer_state);
+
+  switch (layer) {
+    case HACHIKOUME:
+      return der_process_hk(keycode, record); break;
+    default:
+      break;
+  }
+
   return true;
 }
 
 // Runs just one time when the keyboard initializes.
-void matrix_init_user(void) {
-#ifdef RGBLIGHT_COLOR_LAYER_0
-  rgblight_setrgb(RGBLIGHT_COLOR_LAYER_0);
-#endif
-};
+//void matrix_init_user(void) {
+//#ifdef RGBLIGHT_COLOR_LAYER_0
+//  rgblight_setrgb(RGBLIGHT_COLOR_LAYER_0);
+//#endif
+//};
 
 // Runs constantly in the background, in a loop.
 void matrix_scan_user(void) {
